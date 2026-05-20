@@ -8,6 +8,10 @@ export interface ChatSettings {
   aiProvider: "openai" | "anthropic" | "google" | "openrouter";
   aiApiKey: string;
   aiModel: string;
+  renderApiKey?: string;
+  renderWorkspaceId?: string;
+  railwayApiKey?: string;
+  activePlatform?: "render" | "railway";
 }
 
 interface ChatContextType {

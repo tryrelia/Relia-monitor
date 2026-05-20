@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils";
 import { useChatContext } from "@/lib/chat-context";
 import { parseContentWithCharts, InteractiveChart } from "@/components/chat-chart";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { RenderToolOutput } from "@/components/render-tool-output";
 
 function getTitle(messages: UIMessage[]): string {
   const first = messages.find((m) => m.role === "user");
@@ -158,7 +159,7 @@ export function ChatInterface({
   const { messages, sendMessage, status, stop, error, setMessages } = useChat({
     id: conversationId,
     messages: initialMessages,
-    onError: (error) => {
+    onError: (error: Error) => {
       if (error.name === "AbortError" || error.message?.includes("aborted")) {
         return;
       }
@@ -179,7 +180,8 @@ export function ChatInterface({
 
   const handleSendMessage = useCallback(
     async (msg: { text: string; files?: any[] }) => {
-      if (!settings.aiApiKey) {
+      const platformKey = settings.activePlatform === "railway" ? settings.railwayApiKey : settings.renderApiKey;
+      if (!settings.aiApiKey || !platformKey) {
         setIsSettingsOpen(true);
         return;
       }
@@ -189,6 +191,10 @@ export function ChatInterface({
             "x-ai-provider": settings.aiProvider || "",
             "x-ai-api-key": settings.aiApiKey || "",
             "x-ai-model": settings.aiModel || "",
+            "x-render-api-key": settings.renderApiKey || "",
+            "x-render-workspace-id": settings.renderWorkspaceId || "",
+            "x-railway-api-key": settings.railwayApiKey || "",
+            "x-active-platform": settings.activePlatform || "render",
           },
         });
       } catch (error) {
@@ -238,6 +244,20 @@ export function ChatInterface({
   if (messages.length === 0 && !isGenerating) {
     return (
       <div className="flex h-full flex-col">
+        {/* Platform header */}
+        {(settings.renderApiKey || settings.railwayApiKey) && (
+          <div className="flex items-center gap-2 border-b px-4 py-2 text-xs text-muted-foreground">
+            <span>Platform:</span>
+            <span className={cn(
+              "rounded-full px-2 py-0.5 font-medium",
+              settings.activePlatform === "railway"
+                ? "bg-violet-500/15 text-violet-600"
+                : "bg-green-500/15 text-green-600"
+            )}>
+              {settings.activePlatform === "railway" ? "Railway" : "Render"}
+            </span>
+          </div>
+        )}
         <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4">
           <div className="space-y-2 text-center">
             <h2 className="text-2xl font-semibold tracking-tight">
@@ -267,39 +287,80 @@ export function ChatInterface({
 
   return (
     <div className="flex h-full flex-col">
+      {/* Platform header */}
+      {(settings.renderApiKey || settings.railwayApiKey) && (
+        <div className="flex items-center gap-2 border-b px-4 py-2 text-xs text-muted-foreground">
+          <span>Platform:</span>
+          <span className={cn(
+            "rounded-full px-2 py-0.5 font-medium",
+            settings.activePlatform === "railway"
+              ? "bg-violet-500/15 text-violet-600"
+              : "bg-green-500/15 text-green-600"
+          )}>
+            {settings.activePlatform === "railway" ? "Railway" : "Render"}
+          </span>
+        </div>
+      )}
       <Conversation className="flex-1 w-full">
         <ConversationContent className="max-w-5xl mx-auto w-full px-9">
-          {/* No PostHog MCP connection warning */}
-
-          {!settings.aiApiKey && (
+          {(!settings.aiApiKey || !(settings.activePlatform === "railway" ? settings.railwayApiKey : settings.renderApiKey)) && (
             <div className="mb-6 rounded-xl border border-blue-500/25 bg-blue-500/5 p-4 text-sm text-blue-500 shadow-sm backdrop-blur-xs flex items-start gap-3">
               <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-blue-500/10">
                 <SettingsIcon className="size-4 animate-pulse text-blue-500" />
               </span>
-              <div className="flex-1 space-y-1">
-                <p className="font-semibold text-foreground text-sm">AI Provider is disconnected</p>
-                <p className="text-muted-foreground text-xs leading-relaxed">
-                  To generate responses, please enter your <span className="font-semibold text-foreground">{settings.aiProvider.toUpperCase()} API Key</span> in Chat Settings.
-                </p>
-              </div>
+              {(() => {
+                const platformKey = settings.activePlatform === "railway" ? settings.railwayApiKey : settings.renderApiKey;
+                const platformName = settings.activePlatform === "railway" ? "Railway" : "Render";
+                const missingAi = !settings.aiApiKey;
+                const missingPlatform = !platformKey;
+                return (
+                  <div className="flex-1 space-y-1">
+                    <p className="font-semibold text-foreground text-sm">
+                      {missingAi && missingPlatform
+                        ? `AI Provider & ${platformName} are disconnected`
+                        : missingAi
+                        ? "AI Provider is disconnected"
+                        : `${platformName} Integration is disconnected`}
+                    </p>
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      To start chatting, please enter your{" "}
+                      {missingAi && missingPlatform ? (
+                        <span className="font-semibold text-foreground">
+                          {settings.aiProvider.toUpperCase()} API Key and {platformName} API Key
+                        </span>
+                      ) : missingAi ? (
+                        <span className="font-semibold text-foreground">
+                          {settings.aiProvider.toUpperCase()} API Key
+                        </span>
+                      ) : (
+                        <span className="font-semibold text-foreground">
+                          {platformName} API Key
+                        </span>
+                      )}{" "}
+                      in Chat Settings.
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
-          {messages.map((msg, msgIndex) => {
+          {messages.map((msg: any, msgIndex: number) => {
             const isLast = msgIndex === messages.length - 1;
             const isAssistant = msg.role === "assistant";
-            const messageText = msg.parts
-              .filter((p) => p.type === "text")
-              .map((p) => (p as { type: "text"; text: string }).text)
+            const msgParts = msg.parts || [];
+            const messageText = msgParts
+              .filter((p: any) => p.type === "text")
+              .map((p: any) => (p as { type: "text"; text: string }).text)
               .join("");
 
             // Consolidate all reasoning parts into one block (ai-elements pattern)
-            const reasoningText = msg.parts
-              .filter((p) => p.type === "reasoning")
-              .map((p) => (p as { type: "reasoning"; text: string }).text)
+            const reasoningText = msgParts
+              .filter((p: any) => p.type === "reasoning")
+              .map((p: any) => (p as { type: "reasoning"; text: string }).text)
               .join("\n\n");
             const hasReasoning = reasoningText.length > 0;
-            const lastMsgPart = msg.parts.at(-1);
+            const lastMsgPart = msgParts.at(-1);
             const isReasoningStreaming =
               isLast && isGenerating && lastMsgPart?.type === "reasoning";
 
@@ -312,7 +373,7 @@ export function ChatInterface({
                       {hasReasoning && <ReasoningContent>{reasoningText}</ReasoningContent>}
                     </Reasoning>
                   )}
-                  {msg.parts.map((part, i) => {
+                  {msgParts.map((part: any, i: number) => {
                     const key = `${msg.id}-${i}`;
 
                     if (part.type === "reasoning") return null;
@@ -345,9 +406,46 @@ export function ChatInterface({
                       );
                     }
 
-                    // No tools logic
+                    if (part.type === "dynamic-tool") {
+                      const tp = part as {
+                        type: "dynamic-tool";
+                        toolCallId: string;
+                        toolName: string;
+                        state: string;
+                        input: unknown;
+                        output?: unknown;
+                        errorText?: string;
+                      };
 
-                    return null;
+                      // Running: small inline indicator
+                      if (tp.state === "input-streaming" || tp.state === "input-available") {
+                        return (
+                          <div key={key} className="flex items-center gap-2 py-1 text-xs text-muted-foreground">
+                            <Spinner className="size-3" />
+                            <span>{tp.toolName.replaceAll("_", " ")}…</span>
+                          </div>
+                        );
+                      }
+
+                      // Error: banner
+                      if (tp.state === "output-error") {
+                        return (
+                          <div key={key} className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-600">
+                            <span className="font-medium">{tp.toolName.replaceAll("_", " ")} failed: </span>
+                            {tp.errorText}
+                          </div>
+                        );
+                      }
+
+                      // Done: render output directly
+                      if (tp.state === "output-available") {
+                        return (
+                          <RenderToolOutput key={key} toolName={tp.toolName} output={tp.output} />
+                        );
+                      }
+
+                      return null;
+                    }
                   })}
                 </MessageContent>
 
@@ -387,6 +485,10 @@ export function ChatInterface({
               return null;
             }
             if (lastPart?.type === "reasoning") {
+              return null;
+            }
+            // Tool is executing — Tool component shows its own running state
+            if (lastPart?.type === "dynamic-tool") {
               return null;
             }
 

@@ -39,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getAllConversations,
   removeConversation,
@@ -103,8 +104,14 @@ function SettingsDialog() {
   const [aiProvider, setAiProvider] = useState<"openai" | "anthropic" | "google" | "openrouter">(settings.aiProvider);
   const [aiApiKey, setAiApiKey] = useState(settings.aiApiKey);
   const [aiModel, setAiModel] = useState(settings.aiModel);
+  const [renderApiKey, setRenderApiKey] = useState(settings.renderApiKey || "");
+  const [renderWorkspaceId, setRenderWorkspaceId] = useState(settings.renderWorkspaceId || "");
+  const [railwayApiKey, setRailwayApiKey] = useState(settings.railwayApiKey || "");
+  const [activePlatform, setActivePlatform] = useState<"render" | "railway">(settings.activePlatform || "render");
   const [isManualModel, setIsManualModel] = useState(false);
   const [showAiApiKey, setShowAiApiKey] = useState(false);
+  const [showRenderApiKey, setShowRenderApiKey] = useState(false);
+  const [showRailwayApiKey, setShowRailwayApiKey] = useState(false);
 
   const PREDEFINED_MODELS = {
     openai: ["gpt-5.5-instant", "gpt-5.5-pro", "gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "o1", "o3-mini"],
@@ -116,6 +123,10 @@ function SettingsDialog() {
   useEffect(() => {
     setAiProvider(settings.aiProvider || "openai");
     setAiApiKey(settings.aiApiKey);
+    setRenderApiKey(settings.renderApiKey || "");
+    setRenderWorkspaceId(settings.renderWorkspaceId || "");
+    setRailwayApiKey(settings.railwayApiKey || "");
+    setActivePlatform(settings.activePlatform || "render");
 
     const providerKey = (settings.aiProvider || "openai") as keyof typeof PREDEFINED_MODELS;
 
@@ -132,11 +143,13 @@ function SettingsDialog() {
 
     if (!isSettingsOpen) {
       setShowAiApiKey(false);
+      setShowRenderApiKey(false);
+      setShowRailwayApiKey(false);
     }
   }, [settings, isSettingsOpen]);
 
   const handleSave = () => {
-    updateSettings({ aiProvider, aiApiKey, aiModel });
+    updateSettings({ aiProvider, aiApiKey, aiModel, renderApiKey, renderWorkspaceId, railwayApiKey, activePlatform });
     setIsSettingsOpen(false);
   };
 
@@ -276,7 +289,86 @@ function SettingsDialog() {
             </div>
           </div>
 
-          {/* No PostHog settings */}
+          {/* Platform Integration Section */}
+          <div className="space-y-3 pt-3 border-t">
+            <h3 className="text-sm font-medium">Platform Integration</h3>
+            <Tabs value={activePlatform} onValueChange={(v) => setActivePlatform(v as "render" | "railway")}>
+              <TabsList className="w-full">
+                <TabsTrigger value="render" className="flex-1">Render</TabsTrigger>
+                <TabsTrigger value="railway" className="flex-1">Railway</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="render" className="space-y-3 mt-3">
+                <div className="space-y-2">
+                  <Label htmlFor="renderApiKey">Render API Key</Label>
+                  <InputGroup>
+                    <InputGroupInput
+                      id="renderApiKey"
+                      type={showRenderApiKey ? "text" : "password"}
+                      placeholder="rnd_..."
+                      value={renderApiKey}
+                      onChange={(e) => setRenderApiKey(e.target.value)}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        onClick={() => setShowRenderApiKey((p) => !p)}
+                        aria-label={showRenderApiKey ? "Hide API Key" : "Show API Key"}
+                      >
+                        {showRenderApiKey ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1 flex-wrap">
+                    <span>Need a Render key? Get it here:</span>
+                    <a href="https://dashboard.render.com/u/settings" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                      Render Account Settings
+                    </a>
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="renderWorkspaceId">Workspace ID</Label>
+                  <Input
+                    id="renderWorkspaceId"
+                    placeholder="tea-... or own-..."
+                    value={renderWorkspaceId}
+                    onChange={(e) => setRenderWorkspaceId(e.target.value)}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Find your Workspace ID in the Render dashboard URL or team settings.
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="railway" className="space-y-3 mt-3">
+                <div className="space-y-2">
+                  <Label htmlFor="railwayApiKey">Railway API Token</Label>
+                  <InputGroup>
+                    <InputGroupInput
+                      id="railwayApiKey"
+                      type={showRailwayApiKey ? "text" : "password"}
+                      placeholder="railway_..."
+                      value={railwayApiKey}
+                      onChange={(e) => setRailwayApiKey(e.target.value)}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        onClick={() => setShowRailwayApiKey((p) => !p)}
+                        aria-label={showRailwayApiKey ? "Hide API Token" : "Show API Token"}
+                      >
+                        {showRailwayApiKey ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1 flex-wrap">
+                    <span>Get your Railway token here:</span>
+                    <a href="https://railway.com/account/tokens" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                      Railway Account Tokens
+                    </a>
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
         <DialogFooter>
           <Button onClick={handleSave} className="w-full sm:w-auto">Save Settings</Button>

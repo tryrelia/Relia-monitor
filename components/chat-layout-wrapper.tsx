@@ -23,6 +23,10 @@ export function ChatLayoutWrapper({ children }: ChatLayoutWrapperProps) {
     aiProvider: "openai",
     aiApiKey: "",
     aiModel: "",
+    renderApiKey: "",
+    renderWorkspaceId: "",
+    railwayApiKey: "",
+    activePlatform: "render" as const,
   });
 
   const router = useRouter();
@@ -45,6 +49,10 @@ export function ChatLayoutWrapper({ children }: ChatLayoutWrapperProps) {
           aiProvider: parsed.aiProvider || "openai",
           aiApiKey: parsed.aiApiKey || "",
           aiModel: parsed.aiModel || "",
+          renderApiKey: parsed.renderApiKey || "",
+          renderWorkspaceId: parsed.renderWorkspaceId || "",
+          railwayApiKey: parsed.railwayApiKey || "",
+          activePlatform: parsed.activePlatform || "render",
         });
       } catch (e) {
         console.error("Failed to parse settings", e);

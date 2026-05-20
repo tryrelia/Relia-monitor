@@ -225,10 +225,10 @@ export function ChatInterface({
   }, [stop]);
 
   const promptInput = (
-    <div className="border-t bg-background p-4">
+    <div className="border-t bg-background p-2 sm:p-4">
       <PromptInput
         onSubmit={handleSubmit}
-        className="mx-auto max-w-5xl px-9"
+        className="mx-auto max-w-5xl px-2 sm:px-9"
       >
         <PromptInputBody>
           <PromptInputTextarea placeholder="Message…" />
@@ -267,7 +267,7 @@ export function ChatInterface({
               Ask me anything, or start with a suggestion.
             </p>
           </div>
-          <div className="grid w-full max-w-lg grid-cols-2 gap-2">
+          <div className="grid w-full max-w-lg grid-cols-1 sm:grid-cols-2 gap-2">
             {SUGGESTIONS.map((s) => (
               <button
                 key={s}
@@ -302,7 +302,7 @@ export function ChatInterface({
         </div>
       )}
       <Conversation className="flex-1 w-full">
-        <ConversationContent className="max-w-5xl mx-auto w-full px-9">
+        <ConversationContent className="max-w-5xl mx-auto w-full px-3 sm:px-9">
           {(!settings.aiApiKey || !(settings.activePlatform === "railway" ? settings.railwayApiKey : settings.renderApiKey)) && (
             <div className="mb-6 rounded-xl border border-blue-500/25 bg-blue-500/5 p-4 text-sm text-blue-500 shadow-sm backdrop-blur-xs flex items-start gap-3">
               <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-blue-500/10">

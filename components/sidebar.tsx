@@ -165,11 +165,11 @@ function SettingsDialog() {
       <DialogTrigger render={<Button variant="ghost" size="icon" title="Settings" onClick={() => setIsSettingsOpen(true)} />}>
         <SettingsIcon className="size-4" />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md flex flex-col max-h-[90svh]">
         <DialogHeader>
           <DialogTitle>Chat Settings</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 overflow-y-auto flex-1 min-h-0">
           {/* AI Settings Section */}
           <div className="space-y-3">
             <h3 className="text-sm font-medium border-b pb-2">AI Provider</h3>
@@ -381,9 +381,10 @@ function SettingsDialog() {
 interface SidebarProps {
   conversations: StoredConversation[];
   onDelete: (id: string) => void;
+  onClose?: () => void;
 }
 
-export function Sidebar({ conversations, onDelete }: SidebarProps) {
+export function Sidebar({ conversations, onDelete, onClose }: SidebarProps) {
   const router = useRouter();
   const params = useParams();
   const activeId = params?.id as string | undefined;
@@ -391,17 +392,23 @@ export function Sidebar({ conversations, onDelete }: SidebarProps) {
   const createNewChat = useCallback(() => {
     const newId = nanoid();
     router.push(`/${newId}`);
-  }, [router]);
+    onClose?.();
+  }, [router, onClose]);
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r bg-muted/30">
+    <aside className="flex w-64 shrink-0 flex-col border-r bg-muted/30 h-full">
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <span className="font-semibold tracking-tight cursor-pointer" onClick={() => router.push("/")}>
+        <span className="font-semibold tracking-tight cursor-pointer" onClick={() => { router.push("/"); onClose?.(); }}>
           Relia Chat
         </span>
         <div className="flex items-center gap-0.5">
           <SettingsDialog />
           <ThemeToggle />
+          {onClose && (
+            <Button variant="ghost" size="icon" onClick={onClose} title="Close sidebar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -427,8 +434,8 @@ export function Sidebar({ conversations, onDelete }: SidebarProps) {
               key={conv.id}
               role="button"
               tabIndex={0}
-              onClick={() => router.push(`/${conv.id}`)}
-              onKeyDown={(e) => e.key === "Enter" && router.push(`/${conv.id}`)}
+              onClick={() => { router.push(`/${conv.id}`); onClose?.(); }}
+              onKeyDown={(e) => e.key === "Enter" && (router.push(`/${conv.id}`), onClose?.())}
               className={`group flex cursor-pointer items-center rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent ${activeId === conv.id
                   ? "bg-accent font-medium text-foreground"
                   : "text-muted-foreground"

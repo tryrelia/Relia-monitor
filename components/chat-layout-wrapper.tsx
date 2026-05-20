@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import type { UIMessage } from "ai";
+import { MenuIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/sidebar";
 import { ChatContext, type ChatSettings } from "@/lib/chat-context";
 import {
@@ -108,12 +110,47 @@ export function ChatLayoutWrapper({ children }: ChatLayoutWrapperProps) {
   // But wait, the Sidebar is shared.
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
     <ChatContext.Provider value={{ conversations, handleSave, handleDelete, settings, updateSettings, isSettingsOpen, setIsSettingsOpen }}>
       <div className="flex h-screen overflow-hidden bg-background text-foreground">
-        <Sidebar conversations={conversations} onDelete={handleDelete} />
-        <main className="flex min-w-0 flex-1 flex-col">
+        {/* Desktop sidebar */}
+        <div className="hidden md:flex">
+          <Sidebar conversations={conversations} onDelete={handleDelete} />
+        </div>
+
+        {/* Mobile sidebar overlay */}
+        {mobileSidebarOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setMobileSidebarOpen(false)}
+            />
+            <div className="absolute left-0 top-0 h-full shadow-xl animate-in slide-in-from-left-full duration-200">
+              <Sidebar
+                conversations={conversations}
+                onDelete={handleDelete}
+                onClose={() => setMobileSidebarOpen(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          {/* Mobile top bar */}
+          <div className="flex items-center gap-2 border-b px-3 py-2 md:hidden shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileSidebarOpen(true)}
+              title="Open sidebar"
+            >
+              <MenuIcon className="size-5" />
+            </Button>
+            <span className="font-semibold text-sm tracking-tight">Relia Chat</span>
+          </div>
+
           {loaded ? (
             children
           ) : (

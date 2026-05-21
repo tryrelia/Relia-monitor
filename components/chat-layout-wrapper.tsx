@@ -148,7 +148,7 @@ export function ChatLayoutWrapper({ children }: ChatLayoutWrapperProps) {
             >
               <MenuIcon className="size-5" />
             </Button>
-            <span className="font-semibold text-sm tracking-tight">Relia Chat</span>
+            <span className="font-semibold text-sm tracking-tight">Relia Monitor</span>
           </div>
 
           {loaded ? (

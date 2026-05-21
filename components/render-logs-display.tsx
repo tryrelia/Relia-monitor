@@ -133,7 +133,7 @@ export function RenderLogsDisplay({ data }: { data: LogsData }) {
             <div key={log.id} className="flex items-start gap-2 py-1.5 text-xs font-mono">
               <span className="w-[72px] shrink-0 text-muted-foreground">{time}</span>
               <LevelBadge level={level} />
-              <span className="flex-1 break-words text-foreground">{clean}</span>
+              <span className="flex-1 wrap-break-word text-foreground">{clean}</span>
             </div>
           );
         })}

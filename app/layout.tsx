@@ -4,7 +4,7 @@ import { ChatLayoutWrapper } from "@/components/chat-layout-wrapper";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Relia Chat",
+  title: "Relia Monitor",
   description: "A clean and modern AI chat assistant",
 };
 

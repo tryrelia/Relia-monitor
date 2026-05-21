@@ -396,7 +396,7 @@ export function Sidebar({ conversations, onDelete, onClose }: SidebarProps) {
   }, [router, onClose]);
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r bg-muted/30 h-full">
+    <aside className="flex w-64 shrink-0 flex-col border-r bg-muted h-full">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <span className="font-semibold tracking-tight cursor-pointer" onClick={() => { router.push("/"); onClose?.(); }}>
           Relia Monitor

@@ -65,8 +65,12 @@ export async function createRenderMCPSession(credentials: {
 
     console.log(`[MCP] Render Server returned ${mcpTools.length} tools`);
 
+    const filteredMcpTools = workspaceId
+      ? mcpTools.filter((t) => t.name !== "select_workspace" && t.name !== "list_workspaces")
+      : mcpTools;
+
     const tools: ToolSet = Object.fromEntries(
-      mcpTools.map((mcpTool) => {
+      filteredMcpTools.map((mcpTool) => {
         const toolKey = mcpTool.name.replaceAll("-", "_");
         const desc = (mcpTool.description ?? mcpTool.name).slice(0, 300);
 

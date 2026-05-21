@@ -260,6 +260,9 @@ interface Props {
 }
 
 export function RenderToolOutput({ toolName, output }: Props) {
+  // Silent housekeeping tools — no output to show
+  if (toolName === "select_workspace") return null;
+
   // Render tools
   if (toolName === "list_logs") {
     return <RenderLogsDisplay data={output as any} />;

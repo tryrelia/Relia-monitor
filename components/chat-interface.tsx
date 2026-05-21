@@ -76,12 +76,20 @@ function CopyButton({ text }: { text: string }) {
 
 // ── Suggestion chips ───────────────────────────────────────────────────────────
 
-const SUGGESTIONS = [
-  "Explain quantum computing in simple terms",
-  "Write a typescript function to deep clone an object",
-  "Help me brainstorm features for a new web app",
-  "Draft a professional email requesting feedback",
-] as const;
+const SUGGESTIONS = {
+  render: [
+    "List all my Render services and their status",
+    "Show me the logs for my failing service",
+    "What's the CPU and memory usage on my web server?",
+    "List all my databases",
+  ],
+  railway: [
+    "List all my Railway projects and services",
+    "Show me the latest deployment logs",
+    "Which deployments failed in the last 24 hours?",
+    "Get logs for my most recent deployment",
+  ],
+} as const;
 
 
 function ToolIndicator({
@@ -268,7 +276,7 @@ export function ChatInterface({
             </p>
           </div>
           <div className="grid w-full max-w-lg grid-cols-1 sm:grid-cols-2 gap-2">
-            {SUGGESTIONS.map((s) => (
+            {SUGGESTIONS[settings.activePlatform ?? "render"].map((s) => (
               <button
                 key={s}
                 type="button"
@@ -416,6 +424,9 @@ export function ChatInterface({
                         output?: unknown;
                         errorText?: string;
                       };
+
+                      // Silent housekeeping tools — suppress all UI
+                      if (tp.toolName === "select_workspace") return null;
 
                       // Running: small inline indicator
                       if (tp.state === "input-streaming" || tp.state === "input-available") {

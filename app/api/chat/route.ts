@@ -1,7 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { convertToModelMessages, streamText } from "ai";
+import { convertToModelMessages, streamText, stepCountIs } from "ai";
 import type { UIMessage } from "ai";
 import { createRenderMCPSession } from "@/lib/render-mcp";
 import { createRailwayAPISession } from "@/lib/railway-api";
@@ -23,14 +23,15 @@ function buildRenderSystemPrompt(workspaceId?: string): string {
   if (workspaceId) {
     return `${RENDER_SYSTEM_PROMPT_BASE}
 
-WORKSPACE: The user's Render workspace ownerID is "${workspaceId}". Call select_workspace with ownerID="${workspaceId}" as your FIRST action before calling any other tool. Do not ask the user about workspace selection.`;
+WORKSPACE: The user's Render workspace "${workspaceId}" is already selected on the server. Proceed directly to answer the user's request using the available tools — do NOT attempt to select or list workspaces.`;
   }
   return `${RENDER_SYSTEM_PROMPT_BASE}
 
 WORKSPACE SELECTION: A workspace must be selected before most tools work. If any tool fails with "no workspace set":
 1. Call list_workspaces to fetch available workspaces.
 2. Present the list to the user and ask them to choose.
-3. Call select_workspace with the chosen ownerID.
+3. Call select_workspace once with the chosen ownerID, then continue.
+Do not call select_workspace more than once per response.
 Alternatively, ask the user to enter their workspace ownerID in Settings → Render Integration → Workspace ID to skip this step automatically.`;
 }
 
@@ -108,7 +109,7 @@ export async function POST(req: Request) {
     messages: await convertToModelMessages(messages),
     system: systemPrompt,
     tools: session?.tools,
-    maxSteps: 10,
+    stopWhen: stepCountIs(10),
     abortSignal: req.signal,
     onFinish: async () => {
       if (session) {

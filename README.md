@@ -183,6 +183,12 @@ Connect the repo in the dashboard. Build command: `npm run build`. Start command
 
 ## Security
 
+### Security Scan Report
+
+For detailed security information, vulnerability reporting, and security best practices, see [Security](security.md).
+
+**Latest Security Scan Report:** [https://tryrelia.com/sample-project/relia_BZlTP2ceRsG0oeTdW5N7spXLMT58FWbzKGkRkmZ-9peKsqHgO8PvGQY-TfyTD51D](https://tryrelia.com/sample-project/relia_BZlTP2ceRsG0oeTdW5N7spXLMT58FWbzKGkRkmZ-9peKsqHgO8PvGQY-TfyTD51D)
+
 ### Browser Storage Security Considerations
 
 This project stores client-side data using browser storage mechanisms (`IndexedDB` and `localStorage`).

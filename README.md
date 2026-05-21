@@ -2,6 +2,8 @@
 
 > An open-source AI chat interface for [Render](https://render.com) and [Railway](https://railway.app) — manage and monitor your deployments using natural language, powered by your choice of LLM provider.
 
+**Live:** [monitor.tryrelia.com](https://monitor.tryrelia.com)
+
 Ask questions like _"Show me the logs for my failing service"_ or _"What's the CPU usage on my web server?"_ and get answers backed by real platform data, rendered with tool output, streamed reasoning, and inline charts.
 
 ---
